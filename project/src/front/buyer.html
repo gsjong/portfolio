@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Web Programming Lab</title>
+    <link rel="stylesheet" href="/style">
+    <style>
+        table {
+            margin-bottom: 150px;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        function update_buyerList(products) {
+            $("#buyerList").empty();
+            $("#buyerList").append("<th>경매</th>");
+            $("#buyerList").append("<th>사진</th>");
+            $("#buyerList").append("<th>이름</th>");
+            $("#buyerList").append("<th>경매가</th>");
+            $("#buyerList").append("<th>교환 장소</th>");
+            $("#buyerList").append("<th>연락처</th>");
+            $("#buyerList").append("<th>판매자</th>");
+            $("#buyerList").append("<th>구매자</th>");
+            products.forEach(item => {
+                $("#buyerList").append("<tr>");
+                $("#buyerList").append("<td>" + item.status + "</td>");
+                $("#buyerList").append("<td><img src='http://localhost:8000/" + item.image + "' alt='사진 없음'/></td>");
+                $("#buyerList").append("<td>" + item.name + "</td>");
+                $("#buyerList").append("<td>" + item.buyerPrice + "원</td>");
+                $("#buyerList").append("<td>" + item.location + "</td>");
+                $("#buyerList").append("<td>" + item.phone + "</td>");
+                $("#buyerList").append("<td>" + item.username + "</td>");
+                $("#buyerList").append("<td>" + item.buyername + "</td>");
+                $("#buyerList").append("</tr>");
+            });
+        }
+        function get_buyerList() {
+            $.ajax({
+                url: "/product/buyer",
+                type: "get",
+                contentType: "application/json",
+                success: function (response) {
+                    if (response['status'] === 'success') {
+                        update_buyerList(response['data']);
+                    }
+                    else {
+                        alert(response['error']);
+                    }
+                }
+            })
+        }
+        $(document).ready(function () {
+            get_buyerList();
+            $.ajax({
+                url: "/user/one",
+                type: "get",
+                contentType: "application/json",
+                success: function (response) {
+                    $("#username").append("<b>" + response['data'].username + "</b> 님, 환영합니다!");
+                }
+            })
+        })
+    </script>
+</head>
+
+<body>
+    <div class="nav">
+        <span id="username"></span>
+        <a href="/user/logout">로그아웃</a>
+        <a href="/mypage">마이페이지</a>
+        <a href="/change">회원정보수정</a>
+        <a href="/wish">찜목록</a>
+
+    </div>
+    <div class="logo">
+        <a href="/">SKKU WPL</a>
+    </div>
+    <table id="buyerList">
+    </table>
+    <div class="footer">
+        <span>! SKKUMARKET FOR YOUR CONVENIENCE !</span>
+        <img src="../../etc/character.jpg" alt="오류">
+    </div>
+</body>
+
+</html>

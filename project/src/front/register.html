@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Web Programming Lab</title>
+    <link rel="stylesheet" href="/style">
+    <style>
+        input[type=radio] {
+            width: auto;
+            height: auto;
+        }
+
+        #usernameCheck {
+            width: 324px;
+            height: 34px;
+        }
+
+        #usernameCheck:disabled {
+            color: gold;
+            background-color: green;
+        }
+
+        #register {
+            width: auto;
+            height: auto;
+            font-size: 30px;
+            margin-top: 20px;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        function change() {
+            document.getElementById("usernameCheck").disabled = false;
+            document.getElementById("usernameCheck").value = "아이디 중복확인"
+        }
+        $(document).ready(function () {
+            $("#usernameCheck").click(function (event) {
+                var regExp = /^[a-z]+[a-z0-9]{5,19}$/g;
+                if (regExp.test($("#username").val()) === false) {
+                    alert("아이디 조건을 확인해주세요.");
+                }
+                else {
+                    var username = $("#username").val()
+                    var data = { "username": username }
+                    $.ajax({
+                        url: "/user/check",
+                        type: "post",
+                        data: JSON.stringify(data),
+                        dataType: "json",
+                        async: false,
+                        contentType: "application/json",
+                        success: function (response) {
+                            if (response['status'] === 'success') {
+                                alert("사용할 수 있는 아이디입니다.");
+                                document.getElementById("usernameCheck").disabled = true;
+                                document.getElementById("usernameCheck").value = "중복확인 완료"
+                            }
+                            else {
+                                alert(response['error']);
+                            }
+                        },
+                        error: function (request, status, error) {
+                            alert("이미 존재하는 아이디입니다.");
+                        }
+                    })
+                }
+            })
+
+            $("#register").click(function (event) {
+                var username = $("#username").val()
+                var password = $("#password").val()
+                var check = $("#passwordCheck").val()
+                var type = $('input[name="type"]:checked').val()
+                var regExp = /^(?=.*[a-zA-z])(?=.*[0-9])(?=.*[$`~!@$!%*#^?&\\(\\)\-_=+]).{8,16}$/;
+                if (document.getElementById("usernameCheck").disabled === true) {
+                    if (regExp.test($("#password").val())) {
+                        if (password === check) {
+                            var data = { "username": username, "password": password, "type": type };
+                            $.ajax({
+                                url: "/user/register",
+                                type: "post",
+                                data: JSON.stringify(data),
+                                dataType: "json",
+                                contentType: "application/json",
+                                async: false,
+                                success: function (response) {
+                                    if (response['status'] === 'success') {
+                                        alert("정상적으로 가입되었습니다.");
+                                        window.location = "/login";
+                                    }
+                                    else {
+                                        alert(response['error']);
+                                    }
+                                },
+                                error: function (request, status, error) {
+                                    alert(error);
+                                }
+                            });
+                        }
+                        else {
+                            alert("비밀번호가 일치하지 않습니다.");
+                        }
+                    }
+                    else {
+                        alert("비밀번호 조건을 확인해주세요.");
+                    }
+                }
+                else {
+                    alert("아이디 중복 확인을 해주세요.");
+                }
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <div class="nav">
+        <a href="/register">회원가입</a>
+        <a href="/login">로그인</a>
+    </div>
+    <div class="logo">
+        <a href="/">SKKU WPL</a>
+    </div>
+    <div class="register">
+        <input type="radio" name="type" value="buyer" checked>Buyer<br>
+        <input type="radio" name="type" value="seller">Seller<br>
+        <p id="typeHint">가입할 사용자의 타입을 선택해주세요.</p>
+        <hr><br>
+        <input type="text" id="username" placeholder="아이디" onkeydown="change()"><br>
+        <input type="button" id="usernameCheck" value="아이디 중복 확인">
+        <p id="idHint">아이디는 6 ~ 20자의 영문자로 시작하는 영문자 또는 숫자의 문자열이어야 합니다.</p>
+        <hr><br>
+        <input type="password" id="password" placeholder="비밀번호">
+        <p id="passwordHint">비밀번호는 8 ~ 16자의 영문자와 숫자, 특수문자가 조합된 문자열이어야 합니다.</p>
+        <hr><br>
+        <input type="password" id="passwordCheck" placeholder="비밀번호 확인" required minlength="8">
+        <p id="passwordCheckHint">비밀번호와 똑같이 입력해주세요.</p>
+        <input type="button" id="register" value="회원가입">
+    </div>
+</body>
+
+</html>

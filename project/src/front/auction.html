@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Web Programming Lab</title>
+    <link rel="stylesheet" href="/style">
+    <style>
+        #submit {
+            width: auto;
+            height: auto;
+            font-size: 30px;
+            margin-top: 30px;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        var username = "";
+        $(document).ready(function () {
+            $.ajax({
+                url: "/user/one",
+                type: "get",
+                contentType: "application/json",
+                success: function (response) {
+                    username = response['data'].username;
+                    $("#username").append("<b>" + username + "</b> 님, 환영합니다!");
+                }
+            })
+            $("#submit").click(function (event) {
+                var price = 0;
+                if ($("#price").val()) {
+                    price = $("#price").val();
+                }
+                if (!$("#name").val()) {
+                    alert("상품의 이름을 입력해주세요.");
+                }
+                else if (!$("#location").val()) {
+                    alert("교환 장소를 입력해주세요.");
+                }
+                else if (!$("#phone").val()) {
+                    alert("연락처를 입력해주세요.");
+                }
+                else if (price < 0 || !Number.isInteger(Number(price))) {
+                    alert("가격은 0 이상의 정수만 입력할 수 있습니다.");
+                }
+                else {
+                    var data = { "username": username, "name": $("#name").val(), "price": price, "location": $("#location").val(), "phone": $("#phone").val() }
+                    var id = 0;
+                    $.ajax({
+                        url: "/product",
+                        type: "post",
+                        dataType: "json",
+                        contentType: "application/json",
+                        async: false,
+                        data: JSON.stringify(data),
+                        success: function (response) {
+                            if (response['status'] === 'success') {
+                                id = response['data']._id;
+                                alert("상품 등록 성공!");
+                            }
+                            else {
+                                alert(response['error']);
+                            }
+                        },
+                        error: function (request, status, error) {
+                            alert(error);
+                        }
+                    })
+                    if ($("#image").val()) {
+                        const formData = new FormData();
+                        formData.append('image', $("#image")[0].files[0]);
+                        $.ajax({
+                            url: "/product/image/" + id,
+                            type: "post",
+                            processData: false,
+                            contentType: false,
+                            async: false,
+                            data: formData,
+                            success: function (response) {
+                                if (response['status'] === 'success') {
+                                    alert("이미지 등록 성공!")
+                                }
+                                else {
+                                    alert(response['error']);
+                                }
+                            },
+                            error: function (request, status, error) {
+                                alert(error);
+                            }
+                        })
+                    }
+                    window.location = "/mypage";
+                }
+            })
+        })
+    </script>
+</head>
+
+<body>
+    <div class="nav">
+        <span id="username"></span>
+        <a href="/user/logout">로그아웃</a>
+        <a href="/mypage">마이페이지</a>
+        <a href="/change">회원정보수정</a>
+        <a href="/auction">상품등록</a>
+    </div>
+    <div class="logo">
+        <a href="/">SKKU WPL</a>
+    </div>
+    <div class="auction">
+        <input type="file" id="image" name="image" accept="image/*" required><hr>
+        <input type="text" id="name" placeholder="상품이름" required><br>
+        <input type="number" id="price" placeholder="판매가격"><br>
+        <input type="text" id="location" placeholder="교환장소" required><br>
+        <input type="tel" id="phone" placeholder="연락처" required><br>
+        <input type="button" id="submit" value="등록">
+    </div>
+</body>
+
+</html>

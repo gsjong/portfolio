@@ -1,0 +1,233 @@
+@font-face {
+    font-family: "dnf";
+    src: url("../../etc/DNFBitBitTTF.woff") format("woff");
+}
+
+* {
+    font-family: sans-serif;
+}
+
+body {
+    background-image: url("../../etc/KakaoTalk_20221209_011634774.jpg");
+    background-size: cover;
+    background-repeat: repeat;
+    background-color: aliceblue;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: max-content;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px double black;
+    box-shadow: 0px 0px 10px;
+}
+
+td,
+th {
+    border: 1px solid black;
+    text-align: center;
+    vertical-align: middle;
+    padding: 8px;
+}
+
+th {
+    background-color: antiquewhite;
+}
+
+td {
+    background-color: white;
+    height: 200px;
+}
+
+img {
+    height: 200px;
+    transition: all 0.2s linear;
+    transition-delay: 0.2s;
+}
+
+img:hover {
+    transform: scale(2.5);
+}
+
+.nav {
+    text-align: right;
+}
+
+.nav span {
+    margin-right: 50px;
+    background-color: aliceblue;
+    padding: 5px 20px;
+    box-shadow: 1px 1px 5px;
+}
+
+.nav a {
+    text-decoration: none;
+    color: black;
+    padding: 5px 10px;
+    margin: 10px;
+    border-left: 1px solid royalblue;
+    border-right: 1px solid royalblue;
+    background-color: yellow;
+}
+
+.nav a:hover {
+    text-decoration: underline;
+    padding: 10px 15px;
+    margin: 5px;
+    border-left: 1px solid royalblue;
+    border-right: 1px solid royalblue;
+}
+
+.logo {
+    clear: both;
+    font-size: 50px;
+    margin: 100px 15px 125px 115px;
+}
+
+.logo a {
+    text-decoration: none;
+    color: gold;
+    background-color: green;
+    border-radius: 300px;
+    padding: 100px 8px;
+    font-family: "dnf";
+    border: 2px solid black;
+    text-shadow: 0px 0px 10px black;
+}
+
+.search {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 510px 100px;
+    grid-template-rows: 1fr 1fr 1fr 1fr;
+    position: relative;
+    bottom: 235px;
+    left: 700px;
+    margin-right: 700px;
+}
+
+.search input {
+    width: 500px;
+    height: 25px;
+}
+
+.change {
+    text-align: center;
+    width: 800px;
+    margin: 0px auto;
+    padding: 50px;
+    border: 1px double blueviolet;
+    background-color: white;
+}
+
+.change input {
+    width: 300px;
+    height: 25px;
+    padding: 3px 10px;
+}
+
+.login {
+    text-align: center;
+    width: 800px;
+    padding: 50px;
+    margin: 0px auto;
+    border: 1px double blueviolet;
+    background-color: white;
+}
+
+.login input {
+    width: 300px;
+    height: 25px;
+    padding: 10px 20px;
+}
+
+.register {
+    text-align: center;
+    width: 800px;
+    padding: 50px;
+    margin: 0px auto;
+    border: 1px double blueviolet;
+    background-color: white;
+}
+
+.register input {
+    width: 300px;
+    height: 25px;
+    padding: 3px 10px;
+}
+
+.auction {
+    text-align: center;
+    width: 800px;
+    padding: 50px;
+    margin: 0px auto;
+    border: 1px double blueviolet;
+    background-color: white;
+}
+
+.auction input {
+    width: 300px;
+    height: 25px;
+    padding: 3px 10px;
+    margin: 10px;
+}
+
+p {
+    font-size: small;
+}
+
+.footer {
+    background-color: white;
+    text-align: center;
+    vertical-align: middle;
+    padding: 120px 0px 100px;
+}
+
+.footer img {
+    transform: none;
+    float: right;
+    position: relative;
+    bottom: 100px;
+}
+
+.footer span {
+    font-family: "dnf";
+    font-size: 30px;
+}
+
+input[type="button"] {
+    background-color: gray;
+    font-family: "dnf";
+    color: wheat;
+    font-size: 20px;
+    border: 1px solid black;
+}
+
+input[type="button"]:hover {
+    background-color: green;
+    color: gold;
+}
+
+input[value="♥ 찜하기"] {
+    border: none;
+    background-color: white;
+    color: gray;
+}
+
+input[value="♥ 찜하기"]:hover {
+    background-color: white;
+    color: red;
+}
+
+input[value="♡ 취소하기"] {
+    border: none;
+    background-color: white;
+    color: red;
+}
+
+input[value="♡ 취소하기"]:hover {
+    background-color: white;
+    color: gray;
+}

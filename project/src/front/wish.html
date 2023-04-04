@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Web Programming Lab</title>
+    <link rel="stylesheet" href="/style">
+    <style>
+        table {
+            margin-bottom: 150px;
+        }
+
+        input {
+            width: auto;
+            height: auto;
+            font-size: 15px;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        var username;
+        function update_wishlist(products) {
+            $("#wishlist").empty();
+            $("#wishlist").append("<th>경매</th>");
+            $("#wishlist").append("<th>사진</th>");
+            $("#wishlist").append("<th>이름</th>");
+            $("#wishlist").append("<th>경매가</th>");
+            $("#wishlist").append("<th>교환 장소</th>");
+            $("#wishlist").append("<th>판매자</th>");
+            $("#wishlist").append("<th>연락처</th>");
+            $("#wishlist").append("<th>구매자</th>");
+            $("#wishlist").append("<th>구매</th>");
+            $("#wishlist").append("<th>찜</th>");
+            products.forEach(item => {
+                $("#wishlist").append("<tr>");
+                $("#wishlist").append("<td>" + item.status + "</td>");
+                $("#wishlist").append("<td><img src='http://localhost:8000/" + item.image + "' alt='사진 없음'/></td>");
+                $("#wishlist").append("<td>" + item.name + "</td>");
+                $("#wishlist").append("<td>" + item.buyerPrice + "원</td>");
+                $("#wishlist").append("<td>" + item.location + "</td>");
+                $("#wishlist").append("<td>" + item.username + "</td>");
+                $("#wishlist").append("<td>" + item.phone + "</td>");
+                $("#wishlist").append("<td>" + item.buyername + "</td>");
+                $("#wishlist").append('<td><input type="number" id="' + item._id + '" placeholder="가격 제시"><input type="button" class="buy_product" name="' + item._id + '" value="구매"></td>');
+                $("#wishlist").append('<td>' + item.wish + '<br><input type="button" class="cancel_product" name="' + item._id + '" value="♡ 취소하기"></td>');
+                $("#wishlist").append("</tr>");
+            });
+        }
+        function get_wishlist() {
+            $.ajax({
+                url: "/wishlist/one",
+                type: "get",
+                contentType: "application/json",
+                success: function (response) {
+                    if (response['status'] === 'success') {
+                        update_wishlist(response['data']);
+                    }
+                    else {
+                        alert(response['error']);
+                    }
+                }
+            })
+        }
+        $(document).ready(function () {
+            get_wishlist();
+            $.ajax({
+                url: "/user/one",
+                type: "get",
+                contentType: "application/json",
+                success: function (response) {
+                    username = response['data'].username;
+                    $("#username").append("<b>" + response['data'].username + "</b> 님, 환영합니다!");
+                }
+            })
+        })
+        $(document).on('click', '.buy_product', function () {
+            if (!$("#" + $(this).attr("name")).val()) {
+                alert("제시하실 가격을 입력해주세요.")
+            }
+            else if (confirm($("#" + $(this).attr("name")).val() + "원을 제시하시겠습니까?")) {
+                var price = $("#" + $(this).attr("name")).val();
+                var data = { "_id": $(this).attr("name"), "buyerPrice": price, "buyername": username };
+                $.ajax({
+                    url: "/product/buy",
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json",
+                    async: false,
+                    data: JSON.stringify(data),
+                    success: function (response) {
+                        if (response['status'] === 'success') {
+                            alert(price + "원을 제시하셨습니다.");
+                            get_wishlist();
+                        }
+                        else if (response['status'] === 'login') {
+                            window.location = "/login";
+                        }
+                        else {
+                            alert(response['error']);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        alert(error);
+                    }
+                })
+            }
+        })
+        $(document).on('click', '.cancel_product', function () {
+            var data = { "_id": $(this).attr("name") };
+            $.ajax({
+                url: "/wishlist",
+                type: "delete",
+                dataType: "json",
+                contentType: "application/json",
+                async: false,
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response['status'] === 'success') {
+                        alert("찜목록에서 삭제되었습니다.");
+                        get_wishlist();
+                    }
+                    else if (response['status'] === 'login') {
+                        window.location = "/login";
+                    }
+                    else {
+                        alert(response['error']);
+                    }
+                },
+                error: function (request, status, error) {
+                    alert(error);
+                }
+            })
+        })
+    </script>
+</head>
+
+<body>
+    <div class="nav">
+        <span id="username"></span>
+        <a href="/user/logout">로그아웃</a>
+        <a href="/mypage">마이페이지</a>
+        <a href="/change">회원정보수정</a>
+        <a href="/wish">찜목록</a>
+    </div>
+    <div class="logo">
+        <a href="/">SKKU WPL</a>
+    </div>
+    <table id="wishlist">
+    </table>
+    <div class="footer">
+        <span>! SKKUMARKET FOR YOUR CONVENIENCE !</span>
+        <img src="../../etc/character.jpg" alt="오류">
+    </div>
+</body>
+
+</html>

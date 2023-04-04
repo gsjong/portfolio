@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Web Programming Lab</title>
+    <link rel="stylesheet" href="/style">
+    <style>
+        table {
+            position: relative;
+            bottom: 150px;
+        }
+
+        #search {
+            width: 100px;
+            height: 155px;
+            grid-row: 1 / 5;
+            grid-column: 2 / 3;
+            font-size: 40px;
+        }
+
+        input {
+            width: auto;
+            height: auto;
+            font-size: 15px;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        var username;
+        function update_productList(products) {
+            $("#productList").empty();
+            $("#productList").append("<th>경매</th>");
+            $("#productList").append("<th>사진</th>");
+            $("#productList").append("<th>이름</th>");
+            $("#productList").append("<th>경매가</th>");
+            $("#productList").append("<th>교환 장소</th>");
+            $("#productList").append("<th>연락처</th>");
+            $("#productList").append("<th>판매자</th>");
+            $("#productList").append("<th>구매자</th>");
+            $("#productList").append("<th>구매</th>");
+            $("#productList").append("<th>찜</th>");
+            products.forEach(item => {
+                $("#productList").append("<tr>");
+                $("#productList").append("<td>" + item.status + "</td>");
+                $("#productList").append("<td><img src='http://localhost:8000/" + item.image + "' alt='사진 없음'/></td>");
+                $("#productList").append("<td>" + item.name + "</td>");
+                $("#productList").append("<td>" + item.buyerPrice + "원</td>");
+                $("#productList").append("<td>" + item.location + "</td>");
+                $("#productList").append("<td>" + item.phone + "</td>");
+                $("#productList").append("<td>" + item.username + "</td>");
+                $("#productList").append("<td>" + item.buyername + "</td>");
+                $("#productList").append('<td><input type="number" id="' + item._id + '" placeholder="가격 제시"><input type="button" class="buy_product" name="' + item._id + '" value="구매"></td>');
+                $("#productList").append('<td>' + item.wish + '<br><input type="button" class="wish_product" name="' + item._id + '" value="♥ 찜하기"></td>');
+                $("#productList").append("</tr>");
+            });
+        }
+        function get_product() {
+            $.ajax({
+                url: "/product",
+                type: "get",
+                contentType: "application/json",
+                success: function (response) {
+                    if (response['status'] === 'success') {
+                        update_productList(response['data']);
+                    }
+                    else {
+                        alert(response['error']);
+                    }
+                }
+            })
+        }
+        function search_product() {
+            var data = { "username": $("#sellerName").val(), "name": $("#productName").val(), "minPrice": $("#minPrice").val(), "maxPrice": $("#maxPrice").val() };
+            $.ajax({
+                url: "/product/search",
+                type: "post",
+                dataType: "json",
+                contentType: "application/json",
+                async: false,
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response['status'] === 'success') {
+                        update_productList(response['data']);
+                    }
+                    else {
+                        alert(response['error']);
+                    }
+                }
+            })
+        }
+        $(document).ready(function () {
+            get_product();
+            $.ajax({
+                url: "/user/one",
+                type: "get",
+                async: false,
+                contentType: "application/json",
+                success: function (response) {
+                    username = response['data'].username;
+                    document.getElementById("register").style.display = "none";
+                    document.getElementById("login").style.display = "none";
+                    $("#username").append("<b>" + response['data'].username + "</b> 님, 환영합니다!");
+                    if (response['data'].type === "admin") {
+                        document.getElementById("wish").style.display = "none";
+                        document.getElementById("auction").style.display = "none";
+                    }
+                    else if (response['data'].type === "seller") {
+                        document.getElementById("wish").style.display = "none";
+                    }
+                    else {
+                        document.getElementById("auction").style.display = "none";
+                    }
+                },
+                error: function (request, status, error) {
+                    document.getElementById("username").style.display = "none";
+                    document.getElementById("logout").style.display = "none";
+                    document.getElementById("mypage").style.display = "none";
+                    document.getElementById("change").style.display = "none";
+                    document.getElementById("wish").style.display = "none";
+                    document.getElementById("auction").style.display = "none";
+                }
+            })
+        })
+        $(document).on('click', '.buy_product', function () {
+            if (!$("#" + $(this).attr("name")).val()) {
+                alert("제시하실 가격을 입력해주세요.")
+            }
+            else if (confirm($("#" + $(this).attr("name")).val() + "원을 제시하시겠습니까?")) {
+                var price = $("#" + $(this).attr("name")).val();
+                var data = { "_id": $(this).attr("name"), "buyerPrice": price, "buyername": username };
+                $.ajax({
+                    url: "/product/buy",
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json",
+                    async: false,
+                    data: JSON.stringify(data),
+                    success: function (response) {
+                        if (response['status'] === 'success') {
+                            alert(price + "원을 제시하셨습니다.");
+                            get_product();
+                        }
+                        else if (response['status'] === 'login') {
+                            window.location = "/login";
+                        }
+                        else {
+                            alert(response['error']);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        alert(error);
+                    }
+                })
+            }
+        })
+        $(document).on('click', '.wish_product', function () {
+            var data = { "_id": $(this).attr("name") };
+            $.ajax({
+                url: "/wishlist",
+                type: "post",
+                dataType: "json",
+                contentType: "application/json",
+                async: false,
+                data: JSON.stringify(data),
+                success: function (response) {
+                    if (response['status'] === 'success') {
+                        alert("찜목록에 추가되었습니다.");
+                        get_product();
+                    }
+                    else if (response['status'] === 'login') {
+                        window.location = "/login";
+                    }
+                    else {
+                        alert(response['error']);
+                    }
+                },
+                error: function (request, status, error) {
+                    alert(error);
+                }
+            })
+        })
+    </script>
+</head>
+
+<body>
+    <div class="nav">
+        <span id="username"></span>
+        <a href="/register" id="register">회원가입</a>
+        <a href="/login" id="login">로그인</a>
+        <a href="/user/logout" id="logout">로그아웃</a>
+        <a href="/mypage" id="mypage">마이페이지</a>
+        <a href="/change" id="change">회원정보수정</a>
+        <a href="/wish" id="wish">찜목록</a>
+        <a href="/auction" id="auction">상품등록</a>
+    </div>
+    <div class="logo">
+        <a href="/">SKKU WPL</a>
+    </div>
+    <div class="search">
+        <input type="text" id="sellerName" placeholder="판매자 이름">
+        <input type="text" id="productName" placeholder="상품 이름">
+        <input type="number" id="minPrice" placeholder="최저가">
+        <input type="number" id="maxPrice" placeholder="최고가">
+        <input type="button" id="search" value="검색" onclick="search_product()">
+    </div>
+    <table id="productList">
+    </table>
+    <div class="footer">
+        <span>! SKKUMARKET FOR YOUR CONVENIENCE !</span>
+        <img src="../../etc/character.jpg" alt="오류">
+    </div>
+</body>
+
+</html>

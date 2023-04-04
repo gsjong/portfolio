@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Web Programming Lab</title>
+    <link rel="stylesheet" href="/style">
+    <style>
+        table {
+            margin-bottom: 150px;
+        }
+
+        input {
+            width: auto;
+            height: auto;
+            font-size: 15px;
+        }
+
+        input[value="삭제하기"]:hover {
+            background-color: red;
+        }
+
+        input[value="삭제"]:hover {
+            background-color: red;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        function update_sellerList(products) {
+            $("#sellerList").empty();
+            $("#sellerList").append("<th>경매</th>");
+            $("#sellerList").append("<th>사진</th>");
+            $("#sellerList").append("<th>이름</th>");
+            $("#sellerList").append("<th>경매가</th>");
+            $("#sellerList").append("<th>교환 장소</th>");
+            $("#sellerList").append("<th>연락처</th>");
+            $("#sellerList").append("<th>판매자</th>");
+            $("#sellerList").append("<th>구매자</th>");
+            $("#sellerList").append("<th>정보수정</th>");
+            $("#sellerList").append("<th>삭제</th>");
+            products.forEach(item => {
+                $("#sellerList").append("<tr>");
+                if (item.status === "Auction") {
+                    $("#sellerList").append("<td>" + item.status + "<br><input type='button' class='start' value='경매 시작' name='" + item._id + "'></td>");
+                }
+                else if (item.status === "In progress") {
+                    $("#sellerList").append("<td>" + item.status + "<br><input type='button' class='finish' value='경매 종료' name='" + item._id + "'></td>");
+                }
+                else {
+                    $("#sellerList").append("<td>" + item.status + "</td>");
+                }
+                $("#sellerList").append("<td><img src='http://localhost:8000/" + item.image + "' alt='사진 없음'/><br><input type='file' id='" + item._id + "image' name='image' accept='image/*'><br><input type='button' class='upload_image' name='" + item._id + "' value='업로드'><input type='button' class='delete_image' name='" + item._id + "' value='삭제'></td>");
+                $("#sellerList").append("<td><input type='text' id='" + item._id + "name' value='" + item.name + "' placeholder='" + item.name + "'></td>");
+                $("#sellerList").append("<td><input type='number' id='" + item._id + "price' value='" + item.buyerPrice + "' placeholder='" + item.buyerPrice + "'></td>");
+                $("#sellerList").append("<td><input type='text' id='" + item._id + "location' value='" + item.location + "' placeholder='" + item.location + "'></td>");
+                $("#sellerList").append("<td><input type='text' id='" + item._id + "phone' value='" + item.phone + "' placeholder='" + item.phone + "'></td>");
+                $("#sellerList").append("<td>" + item.username + "</td>");
+                $("#sellerList").append("<td>" + item.buyername + "</td>");
+                $("#sellerList").append('<td><input type="button" class="update_product" name="' + item._id + '" value="수정하기"></td>');
+                $("#sellerList").append('<td><input type="button" class="delete_product" name="' + item._id + '" value="삭제하기"></td>');
+                $("#sellerList").append("</tr>");
+            });
+        }
+        function get_sellerList() {
+            $.ajax({
+                url: "/product/one",
+                type: "get",
+                contentType: "application/json",
+                success: function (response) {
+                    if (response['status'] === 'success') {
+                        update_sellerList(response['data']);
+                    }
+                    else {
+                        alert(response['error']);
+                    }
+                }
+            })
+        }
+        $(document).ready(function () {
+            get_sellerList();
+            $.ajax({
+                url: "/user/one",
+                type: "get",
+                contentType: "application/json",
+                success: function (response) {
+                    $("#username").append("<b>" + response['data'].username + "</b> 님, 환영합니다!");
+                }
+            })
+        })
+        $(document).on('click', '.start', function () {
+            if (confirm("경매를 시작하시겠습니까?")) {
+                var data = { "_id": $(this).attr("name"), "status": "In progress", "createdAt": Date.now(), "updatedAt": Date.now() + 1000 * 60 * 60 * 24 * 7 };
+                $.ajax({
+                    url: "/product",
+                    type: "patch",
+                    dataType: "json",
+                    contentType: "application/json",
+                    async: false,
+                    data: JSON.stringify(data),
+                    success: function (response) {
+                        if (response['status'] === 'success') {
+                            alert("경매가 시작되었습니다.");
+                            get_sellerList();
+                        }
+                        else {
+                            alert(response['error']);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        alert(error);
+                    }
+                })
+            }
+        })
+        $(document).on('click', '.finish', function () {
+            if (confirm("경매를 종료하시겠습니까?")) {
+                var data = { "_id": $(this).attr("name") };
+                $.ajax({
+                    url: "/product/purchased",
+                    type: "post",
+                    dataType: "json",
+                    contentType: "application/json",
+                    async: false,
+                    data: JSON.stringify(data),
+                    success: function (response) {
+                        if (response['status'] === 'success') {
+                            alert("경매가 종료되었습니다.");
+                            get_sellerList();
+                        }
+                        else if (response['status'] === 'nobody') {
+                            alert("아무도 구매하지 않아 상품이 유찰되었습니다.");
+                            get_sellerList();
+                        }
+                        else {
+                            alert(response['error']);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        alert(error);
+                    }
+                })
+            }
+        })
+        $(document).on('click', '.upload_image', function () {
+            if (!$("#" + $(this).attr("name") + "image").val()) {
+                alert("이미지 파일을 선택해주세요.")
+            }
+            else if (confirm("기존의 이미지는 삭제됩니다. 정말로 진행하시겠습니까?")) {
+                const formData = new FormData();
+                formData.append('image', $("#" + $(this).attr("name") + "image")[0].files[0]);
+                $.ajax({
+                    url: "/product/image/" + $(this).attr("name"),
+                    type: "post",
+                    processData: false,
+                    contentType: false,
+                    async: false,
+                    data: formData,
+                    success: function (response) {
+                        if (response['status'] === 'success') {
+                            alert("이미지 등록 성공!")
+                            get_sellerList();
+                        }
+                        else {
+                            alert(response['error']);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        alert(error);
+                    }
+                })
+            }
+        })
+        $(document).on('click', '.delete_image', function () {
+            if (confirm("정말로 삭제하시겠습니까?")) {
+                $.ajax({
+                    url: "/product/image/" + $(this).attr("name"),
+                    type: "delete",
+                    processData: false,
+                    contentType: false,
+                    async: false,
+                    success: function (response) {
+                        if (response['status'] === 'success') {
+                            alert("삭제되었습니다.")
+                            get_sellerList();
+                        }
+                        else {
+                            alert(response['error']);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        alert(error);
+                    }
+                })
+            }
+        })
+        $(document).on('click', '.update_product', function () {
+            var price = 0;
+            if ($("#" + $(this).attr("name") + "price").val()) {
+                price = $("#" + $(this).attr("name") + "price").val();
+            }
+            if (!$("#" + $(this).attr("name") + "name").val()) {
+                alert("상품의 이름을 입력해주세요.");
+            }
+            else if (!$("#" + $(this).attr("name") + "location").val()) {
+                alert("교환 장소를 입력해주세요.");
+            }
+            else if (!$("#" + $(this).attr("name") + "phone").val()) {
+                alert("연락처를 입력해주세요.");
+            }
+            else if (price < 0 || !Number.isInteger(Number(price))) {
+                alert("가격은 0 이상의 정수만 입력할 수 있습니다.");
+            }
+            else if (confirm("상품 정보를 수정하시겠습니까?")) {
+                var data = { "_id": $(this).attr("name"), "name": $("#" + $(this).attr("name") + "name").val(), "price": price, "location": $("#" + $(this).attr("name") + "location").val(), "phone": $("#" + $(this).attr("name") + "phone").val() };
+                $.ajax({
+                    url: "/product",
+                    type: "patch",
+                    dataType: "json",
+                    contentType: "application/json",
+                    async: false,
+                    data: JSON.stringify(data),
+                    success: function (response) {
+                        if (response['status'] === 'success') {
+                            alert("수정되었습니다.");
+                            get_sellerList();
+                        }
+                        else {
+                            alert(response['error']);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        alert(error);
+                    }
+                })
+            }
+        })
+        $(document).on('click', '.delete_product', function () {
+            if (confirm("정말로 삭제하시겠습니까?")) {
+                var data = { "_id": $(this).attr("name") };
+                $.ajax({
+                    url: "/product",
+                    type: "delete",
+                    dataType: "json",
+                    contentType: "application/json",
+                    async: false,
+                    data: JSON.stringify(data),
+                    success: function (response) {
+                        if (response['status'] === 'success') {
+                            alert("삭제되었습니다.");
+                            get_sellerList();
+                        }
+                        else {
+                            alert(response['error']);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        alert(error);
+                    }
+                })
+            }
+        })
+    </script>
+</head>
+
+<body>
+    <div class="nav">
+        <span id="username"></span>
+        <a href="/user/logout">로그아웃</a>
+        <a href="/mypage">마이페이지</a>
+        <a href="/change">회원정보수정</a>
+        <a href="/auction">상품등록</a>
+    </div>
+    <div class="logo">
+        <a href="/">SKKU WPL</a>
+    </div>
+    <table id="sellerList">
+    </table>
+    <div class="footer">
+        <span>! SKKUMARKET FOR YOUR CONVENIENCE !</span>
+        <img src="../../etc/character.jpg" alt="오류">
+    </div>
+</body>
+
+</html>

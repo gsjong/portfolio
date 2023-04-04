@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Web Programming Lab</title>
+    <link rel="stylesheet" href="/style">
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td,
+        th {
+            background-color: white;
+            border: 1px solid #dddddd;
+            text-align: center;
+            padding: 8px;
+            height: auto;
+        }
+
+        input[type="button"] {
+            font-family: sans-serif;
+            color: black;
+            border: 1px solid red;
+            background-color: beige;
+        }
+
+        input[type="button"]:hover {
+            background-color: red;
+            color: white;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        function update_userList(users) {
+            $("#userList").empty();
+            $("#userList").append("<th>ID</th>");
+            $("#userList").append("<th>Name</th>");
+            $("#userList").append("<th>Type</th>");
+            $("#userList").append("<th>Delete</th>");
+            users.forEach(item => {
+                $("#userList").append("<tr>");
+                $("#userList").append("<td>" + item._id + "</td>");
+                $("#userList").append("<td>" + item.username + "</td>");
+                $("#userList").append("<td>" + item.type + "</td>");
+                $("#userList").append('<td><input type="button" class="delete_user" name="' + item._id + '" value="Delete User")></td>');
+                $("#userList").append("</tr>");
+            });
+        }
+        function get_user() {
+            $.ajax({
+                url: "/user",
+                type: "get",
+                contentType: "application/json",
+                success: function (response) {
+                    if (response['status'] === 'success') {
+                        update_userList(response['data']);
+                    }
+                    else {
+                        alert(response['error']);
+                    }
+                }
+            })
+        }
+        $(document).ready(function () {
+            get_user();
+            $.ajax({
+                url: "/user/one",
+                type: "get",
+                contentType: "application/json",
+                success: function (response) {
+                    $("#username").append("<b>" + response['data'].username + "</b> 님, 환영합니다!");
+                }
+            })
+        })
+        $(document).on('click', '.delete_user', function () {
+            if (confirm("정말 삭제하시겠습니까?")) {
+                var data = { "_id": $(this).attr("name") };
+                $.ajax({
+                    url: "/user",
+                    type: "delete",
+                    dataType: "json",
+                    contentType: "application/json",
+                    async:false,
+                    data: JSON.stringify(data),
+                    success: function (response) {
+                        if (response['status'] === 'success') {
+                            get_user();
+                        }
+                        else {
+                            alert(response['error']);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        alert(error);
+                    }
+                })
+            }
+        })
+    </script>
+</head>
+
+<body>
+    <div class="nav">
+        <span id="username"></span>
+        <a href="/user/logout">로그아웃</a>
+        <a href="/mypage">마이페이지</a>
+        <a href="/change">회원정보수정</a>
+    </div>
+    <div class="logo">
+        <a href="/">SKKU WPL</a>
+    </div>
+    <table id="userList">
+    </table>
+</body>
+
+</html>
